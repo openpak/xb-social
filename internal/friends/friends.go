@@ -18,8 +18,8 @@ import (
 	"log"
 	"sync"
 
-	"openpak/xb-live/internal/xbaccountapi"
-	"openpak/xb-live/services/xb-social/internal/core"
+	"github.com/openpak/xb-common/xbaccountapi"
+	"github.com/openpak/xb-social/internal/core"
 )
 
 var (

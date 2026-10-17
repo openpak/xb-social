@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"openpak/xb-live/internal/xbfeature"
-	"openpak/xb-live/services/xb-social/internal/social"
+	"github.com/openpak/xb-common/xbfeature"
+	"github.com/openpak/xb-social/internal/social"
 )
 
 // Control serves the gateway's control stream (xbfeature.ControlServiceID):

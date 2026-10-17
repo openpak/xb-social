@@ -7,8 +7,8 @@ import (
 	"encoding/binary"
 	"strconv"
 
-	"openpak/xb-live/services/xb-social/internal/friends"
-	"openpak/xb-live/services/xb-social/internal/social"
+	"github.com/openpak/xb-social/internal/friends"
+	"github.com/openpak/xb-social/internal/social"
 )
 
 // Notification poll (docs/xbox/social-protocol.md 2): type 8, body xuid u64,

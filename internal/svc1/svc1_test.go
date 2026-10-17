@@ -11,11 +11,11 @@ import (
 	"strings"
 	"testing"
 
-	"openpak/xb-live/internal/xbaccountapi"
-	"openpak/xb-live/internal/xbfeature"
-	"openpak/xb-live/services/xb-social/internal/core"
-	"openpak/xb-live/services/xb-social/internal/coretest"
-	"openpak/xb-live/services/xb-social/internal/social"
+	"github.com/openpak/xb-common/xbaccountapi"
+	"github.com/openpak/xb-common/xbfeature"
+	"github.com/openpak/xb-social/internal/core"
+	"github.com/openpak/xb-social/internal/coretest"
+	"github.com/openpak/xb-social/internal/social"
 )
 
 // Vectors from the Xombie presence codec tests (libs/xblive/src/service/presence.rs).

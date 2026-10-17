@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"testing"
 
-	"openpak/xb-live/services/xb-social/internal/friends"
+	"github.com/openpak/xb-social/internal/friends"
 )
 
 func TestOnlyGatewayMayReadFriends(t *testing.T) {

@@ -24,13 +24,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/openpak/xb-common/xbaccountapi"
+	"github.com/openpak/xb-common/xbfeature"
+	"github.com/openpak/xb-social/internal/coretest"
+	"github.com/openpak/xb-social/internal/social"
+	"github.com/openpak/xb-social/internal/svc1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"openpak/xb-live/internal/xbaccountapi"
-	"openpak/xb-live/internal/xbfeature"
-	"openpak/xb-live/services/xb-social/internal/coretest"
-	"openpak/xb-live/services/xb-social/internal/social"
-	"openpak/xb-live/services/xb-social/internal/svc1"
 )
 
 const (

@@ -10,7 +10,7 @@ import (
 	"log"
 	"strconv"
 
-	"openpak/xb-live/services/xb-social/internal/social"
+	"github.com/openpak/xb-social/internal/social"
 )
 
 // Operation message types on xpresence.srf (docs/xbox/social-protocol.md 3).

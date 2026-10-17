@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"openpak/xb-live/services/xb-social/internal/core"
+	"github.com/openpak/xb-social/internal/core"
 )
 
 type Link struct {

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"openpak/xb-live/internal/xbfeature"
+	"github.com/openpak/xb-common/xbfeature"
 )
 
 const (

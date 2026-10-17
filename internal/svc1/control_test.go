@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"openpak/xb-live/internal/xbfeature"
+	"github.com/openpak/xb-common/xbfeature"
 )
 
 type fakeConn struct {

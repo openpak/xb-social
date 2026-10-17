@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"openpak/xb-live/services/xb-social/internal/core"
+	"github.com/openpak/xb-social/internal/core"
 )
 
 // DashboardTitle is the title id the dashboard reports (Xombie alive2 vector).

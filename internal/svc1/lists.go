@@ -7,7 +7,7 @@ import (
 	"log"
 	"strconv"
 
-	"openpak/xb-live/services/xb-social/internal/social"
+	"github.com/openpak/xb-social/internal/social"
 )
 
 // Entry limits and status values of AliveReply payloads (docs/xbox/

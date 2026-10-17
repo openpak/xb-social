@@ -35,8 +35,8 @@ import (
 	"sync"
 	"time"
 
-	"openpak/xb-live/internal/xbfeature"
-	"openpak/xb-live/services/xb-social/internal/social"
+	"github.com/openpak/xb-common/xbfeature"
+	"github.com/openpak/xb-social/internal/social"
 )
 
 const (

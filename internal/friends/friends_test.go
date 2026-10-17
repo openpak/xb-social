@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"openpak/xb-live/internal/xbaccountapi"
-	"openpak/xb-live/services/xb-social/internal/core"
+	"github.com/openpak/xb-common/xbaccountapi"
+	"github.com/openpak/xb-social/internal/core"
 )
 
 type fakeCore struct {

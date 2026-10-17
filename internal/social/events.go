@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"openpak/xb-live/services/xb-social/internal/core"
+	"github.com/openpak/xb-social/internal/core"
 )
 
 // NoticeKind is what changed for an account.

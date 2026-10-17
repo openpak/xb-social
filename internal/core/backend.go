@@ -6,7 +6,7 @@ import (
 	"context"
 	"time"
 
-	pb "openpak/xb-live/services/xb-social/internal/corepb"
+	pb "github.com/openpak/xb-social/internal/corepb"
 )
 
 // Relationship of the first account towards the second (core GetRelationship).
