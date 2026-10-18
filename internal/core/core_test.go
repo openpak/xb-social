@@ -21,7 +21,8 @@ type fake struct {
 	pb.UnimplementedSocialServer
 	pb.UnimplementedSessionsServer
 	pb.UnimplementedLinksServer
-	presenceCalls []int
+	registerRequest *pb.RegisterSessionRequest
+	presenceCalls   []int
 }
 
 func auth(ctx context.Context) error {
@@ -135,5 +136,22 @@ func TestMapErrClasses(t *testing.T) {
 	}
 	if mapNil(nil) != nil {
 		t.Error("nil became an error")
+	}
+}
+
+func (f *fake) RegisterSession(ctx context.Context, r *pb.RegisterSessionRequest) (*pb.RegisterSessionResponse, error) {
+	if err := auth(ctx); err != nil {
+		return nil, err
+	}
+	f.registerRequest = r
+	return &pb.RegisterSessionResponse{SessionId: "session", LeaseSeconds: 30}, nil
+}
+func TestRegisterSessionPublishesClient(t *testing.T) {
+	c, f := dial(t, "k")
+	for _, client := range []string{"berth", ""} {
+		_, _, err := c.RegisterSession(context.Background(), "a", "title", "xbox:1", client, 0)
+		if err != nil || f.registerRequest == nil || f.registerRequest.Client != client || f.registerRequest.Namespace != "xbox" {
+			t.Fatalf("register=%v error=%v", f.registerRequest, err)
+		}
 	}
 }

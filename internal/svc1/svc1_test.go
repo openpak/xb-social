@@ -10,6 +10,7 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/openpak/xb-common/xbaccountapi"
 	"github.com/openpak/xb-common/xbfeature"
@@ -423,5 +424,28 @@ func TestAliveWithoutInvitationInbox(t *testing.T) {
 	}
 	if code, _ := e.do(t, info(xAlice), "xon/1", aliveFor(t, 0, 0)); code != "HTTP/1.0 200 OK X-Err:0" {
 		t.Fatalf("%q", code)
+	}
+}
+
+type clientRecorder struct {
+	core.Backend
+	client string
+}
+
+func (c *clientRecorder) RegisterSession(ctx context.Context, a, t, r, client string, d time.Duration) (string, time.Duration, error) {
+	c.client = client
+	return c.Backend.RegisterSession(ctx, a, t, r, client, d)
+}
+func TestAliveCarriesGatewayClientToPresence(t *testing.T) {
+	for _, client := range []string{"berth", ""} {
+		e := newEnv(t)
+		c := &clientRecorder{Backend: e.c}
+		e.srv.Presence.Core = c
+		inf := info(xAlice)
+		inf.Client = client
+		code, _ := e.do(t, inf, "xon/1", alive2(xAlice, 0xfffe0000))
+		if code != "HTTP/1.0 200 OK X-Err:0" || c.client != client {
+			t.Fatalf("response=%s client=%s", code, c.client)
+		}
 	}
 }

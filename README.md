@@ -64,3 +64,11 @@ Config: `XB_FEATURE_ADDR`, `XB_STATE_DIR`, `XB_PRESENCE_TTL_SECS`, `XB_PRESENCE_
 - Release: push a `vX.Y.Z` tag; `.github/workflows/release.yml` (tags and manual dispatch only) tests and publishes the multi-arch image. CI reads xb-common with the job's `GITHUB_TOKEN` through a netrc build secret; nothing secret is in git or in the image.
 - `deploy/` holds the env example and a Podman quadlet example (digests in it are examples; production pins its own).
 - Provenance and licence: AGPL-3.0-only, see `LICENSE` and `NOTICE`. Derived from the Xombie project in part; the legacy Rust workspace remains in https://github.com/openpak/xbox-live.
+
+### Berth presence
+
+The gateway can attach `client=berth` for a provisioned emulator device. Presence
+continues to use the Xbox network and friends graph; the separate client label
+makes other platforms show “Berth”. The label survives lease renewal and recovery,
+and a newer physical Xbox connection clears it. Unknown labels fall back to Xbox.
+Device attribution is configured in xb-gateway; see its `deploy/berth-presence.md`.

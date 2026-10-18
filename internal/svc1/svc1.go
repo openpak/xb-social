@@ -428,7 +428,7 @@ func (s *Server) alive(ctx context.Context, c Call, msgs [][]byte) (result, erro
 	if err != nil {
 		return result{}, err
 	}
-	if err := s.Presence.Publish(ctx, account, c.XUID, social.TitleKey(ps[0].title), c.Info.Generation, s.TTL); err != nil {
+	if err := s.Presence.PublishClient(ctx, account, c.XUID, social.TitleKey(ps[0].title), c.Info.Client, c.Info.Generation, s.TTL); err != nil {
 		// Presence is best effort: the console still gets its lists. Only a
 		// refusal (not admitted, or a newer connection owns the account) ends the Alive.
 		if errors.Is(err, social.ErrDenied) || errors.Is(err, social.ErrSuperseded) {

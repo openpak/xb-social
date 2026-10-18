@@ -61,6 +61,7 @@ type lease struct {
 	gen      uint64
 	xuid     string
 	title    string
+	client   string
 	session  string
 	deadline time.Time
 	gone     bool
@@ -103,6 +104,15 @@ func (m *Presences) get(account string, create bool) *lease {
 // now+ttl, creating, renewing or moving its core session as needed. gen is the
 // gateway's connection generation.
 func (m *Presences) Publish(ctx context.Context, account, xuid, title string, gen uint64, ttl time.Duration) error {
+	return m.PublishClient(ctx, account, xuid, title, "", gen, ttl)
+}
+
+// PublishClient includes the client attested by the gateway. Unknown client
+// values fall back to the physical Xbox label.
+func (m *Presences) PublishClient(ctx context.Context, account, xuid, title, client string, gen uint64, ttl time.Duration) error {
+	if client != "berth" {
+		client = ""
+	}
 	for {
 		l := m.get(account, true)
 		l.mu.Lock()
@@ -114,13 +124,13 @@ func (m *Presences) Publish(ctx context.Context, account, xuid, title string, ge
 		if l.session != "" && gen < l.gen {
 			return ErrSuperseded
 		}
-		return m.publish(ctx, l, account, xuid, title, gen, clampTTL(ttl))
+		return m.publish(ctx, l, account, xuid, title, client, gen, clampTTL(ttl))
 	}
 }
 
-func (m *Presences) publish(ctx context.Context, l *lease, account, xuid, title string, gen uint64, ttl time.Duration) error {
+func (m *Presences) publish(ctx context.Context, l *lease, account, xuid, title, client string, gen uint64, ttl time.Duration) error {
 	deadline := m.now().Add(ttl)
-	if l.session != "" && l.title == title {
+	if l.session != "" && l.title == title && l.client == client {
 		if _, err := m.Core.Heartbeat(ctx, l.session); err == nil {
 			l.gen, l.xuid, l.deadline = gen, xuid, maxTime(l.deadline, deadline)
 			return nil
@@ -131,7 +141,7 @@ func (m *Presences) publish(ctx context.Context, l *lease, account, xuid, title 
 		// register again (it replaces whatever live row exists for this title)
 	}
 	old := l.session
-	id, _, err := m.Core.RegisterSession(ctx, account, title, "xbox:"+xuid, 0)
+	id, _, err := m.Core.RegisterSession(ctx, account, title, "xbox:"+xuid, client, 0)
 	switch {
 	case err == nil:
 	default:
@@ -139,7 +149,7 @@ func (m *Presences) publish(ctx context.Context, l *lease, account, xuid, title 
 		// has already been admitted by the resolver, so this is not a refusal.
 		return fmt.Errorf("%w: register session: %v", ErrUnavailable, err)
 	}
-	l.session, l.title, l.gen, l.xuid, l.deadline = id, title, gen, xuid, deadline
+	l.session, l.title, l.client, l.gen, l.xuid, l.deadline = id, title, client, gen, xuid, deadline
 	if old != "" && old != id {
 		// Best effort: a failure only leaves the old title until its 30 s lease ends.
 		if err := m.Core.ExpireSession(ctx, old); err != nil && !errors.Is(err, core.ErrNotFound) && !errors.Is(err, core.ErrConflict) {
@@ -262,7 +272,7 @@ func (m *Presences) Tick(ctx context.Context) {
 			if _, err := m.Core.Heartbeat(ctx, l.session); errors.Is(err, core.ErrNotFound) {
 				log.Printf("presence: core lease of %s lapsed; registering %q again", a, l.title)
 				// Lease lost (core expired it): register the same title again.
-				if id, _, err := m.Core.RegisterSession(ctx, a, l.title, "xbox:"+l.xuid, 0); err == nil {
+				if id, _, err := m.Core.RegisterSession(ctx, a, l.title, "xbox:"+l.xuid, l.client, 0); err == nil {
 					l.session = id
 				}
 			}

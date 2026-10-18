@@ -61,7 +61,7 @@ type Backend interface {
 	Unblock(ctx context.Context, blocker, blocked string) error
 
 	// RegisterSession creates or replaces the live session of (account, xbox, title).
-	RegisterSession(ctx context.Context, account, title, endpointRef string, lease time.Duration) (id string, applied time.Duration, err error)
+	RegisterSession(ctx context.Context, account, title, endpointRef, client string, lease time.Duration) (id string, applied time.Duration, err error)
 	// Heartbeat renews; ErrNotFound when the session expired or is unknown.
 	Heartbeat(ctx context.Context, id string) (time.Duration, error)
 	ExpireSession(ctx context.Context, id string) error
@@ -197,11 +197,11 @@ func mapNil(err error) error {
 	return mapErr(err)
 }
 
-func (c *Client) RegisterSession(p context.Context, account, title, ref string, lease time.Duration) (string, time.Duration, error) {
+func (c *Client) RegisterSession(p context.Context, account, title, ref, client string, lease time.Duration) (string, time.Duration, error) {
 	ctx, cancel := c.ctx(p)
 	defer cancel()
 	r, err := c.sessions.RegisterSession(ctx, &pb.RegisterSessionRequest{AccountId: account, Namespace: Namespace,
-		TitleId: title, EndpointRef: ref, LeaseSeconds: int32(lease / time.Second)})
+		TitleId: title, EndpointRef: ref, Client: client, LeaseSeconds: int32(lease / time.Second)})
 	if err != nil {
 		return "", 0, mapErr(err)
 	}

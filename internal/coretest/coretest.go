@@ -378,7 +378,7 @@ func (c *Core) Unblock(_ context.Context, blocker, blocked string) error {
 
 const lease = 30 * time.Second
 
-func (c *Core) RegisterSession(_ context.Context, account, title, ref string, d time.Duration) (string, time.Duration, error) {
+func (c *Core) RegisterSession(_ context.Context, account, title, ref, client string, d time.Duration) (string, time.Duration, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if err := c.begin("RegisterSession"); err != nil {
