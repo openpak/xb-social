@@ -497,7 +497,7 @@ func (c *Core) SendInvitation(_ context.Context, from, to, title string, payload
 	if err := c.begin("SendInvitation"); err != nil {
 		return "", "", err
 	}
-	if from == to || len(payload) == 0 || len(payload) > 4096 || ttl <= 0 || title == "" {
+	if from == to || len(payload) == 0 || len(payload) > 4096 || ttl <= 0 {
 		return "", "", core.ErrInvalid
 	}
 	if !c.interact(from, to) {

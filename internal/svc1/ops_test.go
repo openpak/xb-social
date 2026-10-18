@@ -106,6 +106,35 @@ func TestFriendOperations(t *testing.T) {
 	}
 }
 
+// The dashboard's presence title key is empty; an invite to chat from it carries
+// the voice session id and reaches the target's dashboard session as title 0xfffe0000.
+func TestDashboardInviteToChat(t *testing.T) {
+	e := newEnv(t)
+	a, b := xAlice, bobX
+	e.op(t, a, "alice", msg(opFriendRequest, 1, a, b, uint16(0)))
+	e.op(t, b, "bob", msg(opAccept, 1, b, a))
+	const dash = uint32(0xfffe0000)
+	const session = uint64(0x80aabbccddeeff01)
+	e.do(t, infoFor(a, "alice"), "xon/1", alive2(a, dash))
+	// Bob has no dashboard session yet: the target is not reachable.
+	if c := e.op(t, a, "alice", msg(opSendInvite, 1, a, session, uint16(1), b)); !strings.HasSuffix(c, "X-Err:8015200c") {
+		t.Fatalf("target without a dashboard session %q", c)
+	}
+	e.do(t, infoFor(b, "bob"), "xon/1", alive2(b, dash))
+	if c := e.op(t, a, "alice", msg(opSendInvite, 1, a, session, uint16(1), b)); c != ok {
+		t.Fatalf("dashboard invite %q", c)
+	}
+	m := msg(msgNotifyPoll, 5, b, uint16(3), uint32(0), uint16(0x14), uint32(0x800))
+	code, out := e.doPath(t, "/xpnfront/xnotification.srf", infoFor(b, "bob"), "xon/1", m)
+	if code != ok || len(out) < 0x3e || binary.LittleEndian.Uint16(out[0x34:]) != 1 {
+		t.Fatalf("poll %q % x", code, out)
+	}
+	body := out[0x3e+6:]
+	if binary.LittleEndian.Uint64(body) != a || binary.LittleEndian.Uint64(body[8:]) != session || binary.LittleEndian.Uint32(body[0x10:]) != dash {
+		t.Fatalf("invite record % x", body)
+	}
+}
+
 func TestInviteOperationsAndNotificationPoll(t *testing.T) {
 	e := newEnv(t)
 	a, b := xAlice, bobX

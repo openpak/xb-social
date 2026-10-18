@@ -116,7 +116,10 @@ func (s *Server) notification(ctx context.Context, c Call, body []byte) (result,
 		_, err := s.Social.PollInvites(ctx, c.XUID, acct, func(in []social.Invite) error {
 			for _, i := range in {
 				x, err1 := strconv.ParseUint(i.From.XUID, 16, 64)
-				title, err2 := strconv.ParseUint(i.TitleID, 16, 32)
+				title, err2 := uint64(social.DashboardTitle), error(nil) // an empty title is the dashboard's
+				if i.TitleID != "" {
+					title, err2 = strconv.ParseUint(i.TitleID, 16, 32)
+				}
 				if err1 != nil || err2 != nil || len(i.Payload) != invitePayloadSize {
 					continue // not an invitation this service wrote
 				}

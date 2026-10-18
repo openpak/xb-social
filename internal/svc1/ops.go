@@ -161,12 +161,18 @@ func (s *Server) sendInvite(ctx context.Context, c Call, body []byte) (result, e
 		return result{}, err
 	}
 	key, ok := s.Presence.Current(account)
-	if !ok || key == "" {
+	if !ok {
 		return xerr(hrNoPresenceSess)
 	}
-	title64, err := strconv.ParseUint(key, 16, 32)
-	if err != nil {
-		return result{}, errBad
+	// The dashboard's presence title key is empty (TitleKey): it invites to chat
+	// as title 0xfffe0000, which TitleKey maps back to the target's dashboard session.
+	title := uint32(social.DashboardTitle)
+	if key != "" {
+		title64, err := strconv.ParseUint(key, 16, 32)
+		if err != nil {
+			return result{}, errBad
+		}
+		title = uint32(title64)
 	}
 	var targets []string
 	for i := range n {
@@ -191,7 +197,7 @@ func (s *Server) sendInvite(ctx context.Context, c Call, body []byte) (result, e
 	sent := 0
 	var first error
 	for _, t := range targets {
-		err := s.Social.SendInvite(ctx, c.XUID, acct, t, uint32(title64), payload, 0)
+		err := s.Social.SendInvite(ctx, c.XUID, acct, t, title, payload, 0)
 		if err == nil {
 			sent++
 		} else if first == nil {
