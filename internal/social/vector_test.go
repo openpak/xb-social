@@ -12,8 +12,12 @@ func TestNotifierVectorWords(t *testing.T) {
 	}
 	v1 := got[0] >> 8
 	n.Apply(Push{XUID: "0009000000000001", Bits: PendingPresent})
-	if len(got) != 3 || got[2]&0xff != 0x88 || got[2]>>8 <= v1 {
-		t.Fatalf("presence word %x (list version %d)", got, v1)
+	if len(got) != 2 || got[1] != BitList|BitPresent || got[0]>>8 <= v1 {
+		t.Fatalf("presence push must set 0x4 in the bits word with a higher version: %x (list version %d)", got, v1)
+	}
+	v1 = got[0] >> 8
+	if w := n.Take("0009000000000001", BitPresent); w[1] != BitList || w[0]>>8 <= v1 {
+		t.Fatalf("take must clear the presence bit with a higher version: %x", w)
 	}
 	w := n.Take("0009000000000001", BitList)
 	if w[1] != 0 || w[0]>>8 <= v1 {

@@ -13,8 +13,11 @@ import (
 // Word layout: ver<<8 | index<<2 | (words-1); the console applies a word only
 // when its version is higher than the stored one.
 //
-//	index 0, 2 words: [header, bits]  bits 0x1 list changed, 0x8 invitation, 0x10 answer
-//	index 2, 1 word : presence marker, bit 7 set; a newer version means "poll presence"
+//	index 0, 2 words: [header, bits]  bits 0x1 list changed, 0x4 presence, 0x8 invitation, 0x10 answer
+//
+// The bits word is the pending word the console tests to pick a poll kind
+// (RE: the poller reads it at index 0 word 1); there is no separate presence
+// word, a presence change is bit 0x4 like the others.
 type Notifier struct {
 	// Emit delivers words to the gateway for the user; it must not block.
 	Emit func(xuid uint64, words []uint32)
@@ -24,12 +27,13 @@ type Notifier struct {
 	users map[string]*nvec
 }
 
-type nvec struct{ verA, verP, bits uint32 }
+type nvec struct{ verA, bits uint32 }
 
 const (
-	vecList   uint32 = 0x1
-	vecInvite uint32 = 0x8
-	vecAnswer uint32 = 0x10
+	vecList    uint32 = 0x1
+	vecPresent uint32 = 0x4
+	vecInvite  uint32 = 0x8
+	vecAnswer  uint32 = 0x10
 )
 
 func (n *Notifier) next() uint32 {
@@ -58,9 +62,6 @@ func wordsOf(v *nvec) []uint32 {
 	if v.verA != 0 {
 		w = append(w, v.verA<<8|0<<2|1, v.bits)
 	}
-	if v.verP != 0 {
-		w = append(w, v.verP<<8|0x80|2<<2)
-	}
 	return w
 }
 
@@ -75,12 +76,8 @@ func (n *Notifier) send(xuid string, w []uint32) {
 func (n *Notifier) Apply(p Push) {
 	n.mu.Lock()
 	v := n.get(p.XUID)
-	if p.Bits == PendingPresent {
-		v.verP = n.next()
-	} else {
-		v.verA = n.next()
-		v.bits |= map[uint32]uint32{PendingList1: vecList, PendingInvite: vecInvite, PendingAnswer: vecAnswer}[p.Bits]
-	}
+	v.verA = n.next()
+	v.bits |= map[uint32]uint32{PendingList1: vecList, PendingPresent: vecPresent, PendingInvite: vecInvite, PendingAnswer: vecAnswer}[p.Bits]
 	w := wordsOf(v)
 	n.mu.Unlock()
 	n.send(p.XUID, w)
@@ -111,7 +108,8 @@ func (n *Notifier) Forget(xuid string) {
 
 // Bit constants for pollers.
 const (
-	BitList   = vecList
-	BitInvite = vecInvite
-	BitAnswer = vecAnswer
+	BitList    = vecList
+	BitPresent = vecPresent
+	BitInvite  = vecInvite
+	BitAnswer  = vecAnswer
 )

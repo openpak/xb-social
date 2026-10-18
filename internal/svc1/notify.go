@@ -94,14 +94,21 @@ func (s *Server) notification(ctx context.Context, c Call, body []byte) (result,
 		}
 		for _, f := range r.Friends {
 			x, err := strconv.ParseUint(f.XUID, 16, 64)
-			if err != nil || x == 0 || f.Presence.State != friends.Online {
+			if err != nil || x == 0 {
 				continue
 			}
+			// The client replaces the entry's low 26 flag bits and its title with the
+			// record's (RE FUN_0011dbf5), keeping only the request/invite state, so an
+			// offline friend is a record with flags 0 and title 0: it clears a friend
+			// who went offline since the last poll.
 			var title uint64
-			flags := uint32(flagOnline)
-			if f.Presence.TitleID != "" {
-				if title, err = strconv.ParseUint(f.Presence.TitleID, 16, 32); err == nil {
-					flags |= flagPlaying
+			var flags uint32
+			if f.Presence.State == friends.Online {
+				flags = flagOnline
+				if f.Presence.TitleID != "" {
+					if title, err = strconv.ParseUint(f.Presence.TitleID, 16, 32); err == nil {
+						flags |= flagPlaying
+					}
 				}
 			}
 			bd := binary.LittleEndian.AppendUint64(nil, x)
@@ -157,7 +164,7 @@ func (s *Server) notification(ctx context.Context, c Call, body []byte) (result,
 	// (version words are applied only when newer) and hand back the vector.
 	var words []uint32
 	if s.Notifier != nil {
-		bit := map[uint16]uint32{0: social.BitList, 1: social.BitList, 3: social.BitInvite, 4: social.BitAnswer}[kind]
+		bit := map[uint16]uint32{0: social.BitList, 1: social.BitList, 2: social.BitPresent, 3: social.BitInvite, 4: social.BitAnswer}[kind]
 		words = s.Notifier.Take(c.XUID, bit)
 	}
 	// Header, then: xuid u64, kind u16, HR s32, 6 unread bytes, record count u16,

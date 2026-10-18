@@ -103,7 +103,10 @@ type Server struct {
 	StubDelay      time.Duration
 	// DebugHex logs every AliveReply as hex (XUIDs and gamertags only).
 	DebugHex bool
-	Now      func() time.Time
+	// HelloDelay overrides the wait between writing an AliveReply and pushing the
+	// sign-in presence hello (default 1.5 s); tests shorten it.
+	HelloDelay time.Duration
+	Now        func() time.Time
 
 	mu      sync.Mutex
 	buckets map[uint64]*bucket
@@ -208,7 +211,11 @@ func (s *Server) Serve(ctx context.Context, info xbfeature.Info, c xbfeature.Con
 		}
 		res := s.handle(ctx, info, req, body)
 		closeConn := req.Close || req.ProtoMajor == 1 && req.ProtoMinor == 0 || res.code >= 400
-		if err := respond(c, res.code, res.xerr, res.body); err != nil || closeConn {
+		err = respond(c, res.code, res.xerr, res.body)
+		if err == nil && res.after != nil {
+			res.after()
+		}
+		if err != nil || closeConn {
 			return err
 		}
 	}
@@ -240,6 +247,8 @@ type result struct {
 	code int
 	xerr uint32
 	body []byte
+	// after (optional) runs once the reply has been written to the console.
+	after func()
 }
 
 func status(code int) result { return result{code: code} }
@@ -427,9 +436,6 @@ func (s *Server) alive(ctx context.Context, c Call, msgs [][]byte) (result, erro
 		}
 		log.Printf("svc1: presence not published (continuing): %v", err)
 	}
-	if s.Notifier != nil {
-		s.Notifier.Hello(c.XUID) // the console polls presence once after sign-in
-	}
 	roster, err := s.Social.RosterOf(ctx, account)
 	if err != nil {
 		return result{}, err
@@ -461,7 +467,35 @@ func (s *Server) alive(ctx context.Context, c Call, msgs [][]byte) (result, erro
 			log.Printf("svc1: AliveReply hex=%x", r)
 		}
 	}
-	return result{body: out}, nil
+	return result{body: out, after: s.helloAfter(c)}, nil
+}
+
+// helloDelay is how long after the AliveReply is written the sign-in presence
+// hello is pushed: the console ignores a push that lands before its logon is
+// answered (the logon resets the vector), and the push (UDP) can overtake the reply.
+const helloDelay = 1500 * time.Millisecond
+
+// helloAfter returns the step that makes the console poll presence once after
+// sign-in; Serve runs it after the reply is written. The push fires only if the
+// user is still online, so it cannot reach a session that has since ended.
+func (s *Server) helloAfter(c Call) func() {
+	if s.Notifier == nil {
+		return nil
+	}
+	return func() {
+		time.AfterFunc(s.helloDelay(), func() {
+			if x, ok := s.Presence.XUIDOf(c.Info.CoreAccountID); ok && x == c.XUID {
+				s.Notifier.Hello(c.XUID)
+			}
+		})
+	}
+}
+
+func (s *Server) helloDelay() time.Duration {
+	if s.HelloDelay > 0 {
+		return s.HelloDelay
+	}
+	return helloDelay
 }
 
 // aliveReply builds AliveReply: hr s32 0, buddy version u32, buddies u16,
