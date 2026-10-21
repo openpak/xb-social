@@ -21,6 +21,7 @@ const (
 	opDeclineBlock  = 0x3ef // "Decline Friend Request" sends 0x3ef with u32 0, "Block Friend Requests" u32 1
 	opSendInvite    = 0x3f3
 	opAnswerInvite  = 0x3f4
+	opChatInvite    = 0x417 // observed live: dashboard "Invite to chat", after an xmatchhost create
 )
 
 // Status values the console interprets in X-Err (section 4). The operation
@@ -55,6 +56,8 @@ func (s *Server) operation(ctx context.Context, c Call, typ uint32, msg []byte) 
 		want = -1
 	case opAnswerInvite:
 		want = 0x1a
+	case opChatInvite:
+		want = -1
 	default:
 		if s.Messages == nil {
 			return result{}, ErrUnsupported
@@ -100,6 +103,8 @@ func (s *Server) operation(ctx context.Context, c Call, typ uint32, msg []byte) 
 		return result{}, errBad
 	case opSendInvite:
 		return s.sendInvite(ctx, c, body)
+	case opChatInvite:
+		return s.sendChatInvite(ctx, c, body)
 	case opAnswerInvite:
 		inviter, session, answer := u(8), binary.LittleEndian.Uint64(body[16:]), binary.LittleEndian.Uint16(body[24:])
 		if answer > 1 {
@@ -155,6 +160,38 @@ func (s *Server) sendInvite(ctx context.Context, c Call, body []byte) (result, e
 	if n > maxInviteTargets || len(body) != 18+8*n {
 		return result{}, errBad
 	}
+	var targets []string
+	for i := range n {
+		targets = append(targets, fmt.Sprintf("%016x", binary.LittleEndian.Uint64(body[18+8*i:])))
+	}
+	return s.invite(ctx, c, session, targets)
+}
+
+// Chat invite (0x417, observed live, layout from the wire): sender XUID 8,
+// zeros 8, title u32 (0xfffe0000, the dashboard) 4, zero u32, n u16, u16 0x10,
+// n XUIDs, then a fixed 16 bytes: u16 1, u16 8, u32 0x581, and the match
+// session id (the id xmatchhost returned for this chat) as the last u64.
+const chatInviteTail = 16
+
+func (s *Server) sendChatInvite(ctx context.Context, c Call, body []byte) (result, error) {
+	if len(body) < 28 {
+		return result{}, errBad
+	}
+	n := int(binary.LittleEndian.Uint16(body[24:]))
+	if n < 1 || n > maxInviteTargets || len(body) != 28+8*n+chatInviteTail {
+		return result{}, errBad
+	}
+	var targets []string
+	for i := range n {
+		targets = append(targets, fmt.Sprintf("%016x", binary.LittleEndian.Uint64(body[28+8*i:])))
+	}
+	return s.invite(ctx, c, binary.LittleEndian.Uint64(body[len(body)-8:]), targets)
+}
+
+// invite delivers an invitation carrying the session id to the targets; no
+// targets means every friend who is in the sender's title.
+func (s *Server) invite(ctx context.Context, c Call, session uint64, targets []string) (result, error) {
+	n := len(targets)
 	acct := c.Info.CoreAccountID
 	account, err := s.Social.Actor(ctx, c.XUID, acct)
 	if err != nil {
@@ -173,10 +210,6 @@ func (s *Server) sendInvite(ctx context.Context, c Call, body []byte) (result, e
 			return result{}, errBad
 		}
 		title = uint32(title64)
-	}
-	var targets []string
-	for i := range n {
-		targets = append(targets, fmt.Sprintf("%016x", binary.LittleEndian.Uint64(body[18+8*i:])))
 	}
 	if n == 0 {
 		r, err := s.Social.RosterOf(ctx, account)

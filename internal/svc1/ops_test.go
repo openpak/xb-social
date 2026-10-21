@@ -294,3 +294,34 @@ func TestStubModes(t *testing.T) {
 		t.Fatalf("stubwork: %q % x %v", code, out, e.c.Sessions("alice"))
 	}
 }
+
+// The dashboard's own "Invite to chat" sends 0x417 (layout captured from a live
+// Berth): it must deliver exactly like the 0x3f3 chat invite, and a malformed
+// tail is refused.
+func TestDashboardChatInvite0x417(t *testing.T) {
+	e := newEnv(t)
+	a, b := xAlice, bobX
+	e.op(t, a, "alice", msg(opFriendRequest, 1, a, b, uint16(0)))
+	e.op(t, b, "bob", msg(opAccept, 1, b, a))
+	const dash = uint32(0xfffe0000)
+	const session = uint64(0x95b296fd51997ae5)
+	e.do(t, infoFor(a, "alice"), "xon/1", alive2(a, dash))
+	e.do(t, infoFor(b, "bob"), "xon/1", alive2(b, dash))
+	invite := func(tail ...any) string {
+		return e.op(t, a, "alice", msg(opChatInvite, 3, append([]any{a, uint64(0), dash, uint32(0), uint16(1), uint16(0x10), b}, tail...)...))
+	}
+	if c := invite(uint16(1), uint16(8), uint32(0x581), session); c != ok {
+		t.Fatalf("chat invite %q", c)
+	}
+	m := msg(msgNotifyPoll, 5, b, uint16(3), uint32(0), uint16(0x14), uint32(0x800))
+	code, out := e.doPath(t, "/xpnfront/xnotification.srf", infoFor(b, "bob"), "xon/1", m)
+	if code != ok || len(out) < 0x3e || binary.LittleEndian.Uint16(out[0x34:]) != 1 {
+		t.Fatalf("poll %q % x", code, out)
+	}
+	if body := out[0x3e+6:]; binary.LittleEndian.Uint64(body) != a || binary.LittleEndian.Uint64(body[8:]) != session {
+		t.Fatalf("invite record % x", body)
+	}
+	if c := invite(uint16(1), uint16(8)); !strings.HasPrefix(c, "HTTP/1.0 400") {
+		t.Fatalf("short tail %q", c)
+	}
+}
