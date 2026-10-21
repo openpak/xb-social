@@ -5,6 +5,7 @@ package social
 import (
 	"context"
 	"errors"
+	"log"
 	"sync"
 	"time"
 
@@ -46,6 +47,7 @@ func (s *Service) SendInvite(ctx context.Context, viewerXUID, gatewayAccount, ta
 	case errors.Is(err, core.ErrNotFound):
 		return ErrUnknownUser
 	case err != nil:
+		log.Printf("social: invite policy check failed: %v", err)
 		return ErrUnavailable
 	case !ok:
 		return ErrNotPermitted
@@ -57,6 +59,7 @@ func (s *Service) SendInvite(ctx context.Context, viewerXUID, gatewayAccount, ta
 	case errors.Is(err, core.ErrNotFound):
 		return ErrNotReachable
 	case err != nil:
+		log.Printf("social: invite session resolve failed: %v", err)
 		return ErrUnavailable
 	case ns != core.Namespace:
 		return ErrNotReachable
@@ -72,6 +75,7 @@ func (s *Service) SendInvite(ctx context.Context, viewerXUID, gatewayAccount, ta
 	case errors.Is(err, core.ErrInvalid):
 		return ErrInvalid
 	}
+	log.Printf("social: send invitation failed: %v", err)
 	return ErrUnavailable
 }
 
