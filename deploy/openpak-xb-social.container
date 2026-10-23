@@ -1,6 +1,6 @@
 # MAIN host (quilted-waffle). Native Xbox presence/friends/invitations for the
 # gateway: owns service id 1 (presence). NOT deployed; do not install until the
-# wire plug-ins exist (docs/xbox/social-protocol.md), see README.md.
+# wire plug-ins exist (internal research notes), see README.md.
 # Private API only: published on the ZeroTier address, never on a public interface.
 # Gateway: XBGW_BACKENDS=1=<zerotier-address>:<XB_FEATURE port> (replaces the
 # xb-account svc1 stub on port 26113 for id 1).

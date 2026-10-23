@@ -16,7 +16,7 @@
 // What this package does not know is how buddy and block entries are encoded
 // after the reply header, nor any message other than Alive/Alive2: those are
 // the job of the Lists and Messages plug-ins, supplied once the wire is
-// documented (docs/xbox/social-protocol.md). Without a plug-in a message type
+// documented (internal research notes). Without a plug-in a message type
 // is answered 501 and a non-empty list is not announced (version 0, no
 // entries) rather than invented.
 package svc1
@@ -254,7 +254,7 @@ type result struct {
 func status(code int) result { return result{code: code} }
 
 // Service 1 paths: presence and operations on xpresence.srf, the notification
-// poll on xnotification.srf (docs/xbox/social-protocol.md section 0).
+// poll on xnotification.srf (internal research notes section 0).
 const (
 	pathPresence     = "/xpnfront/xpresence.srf"
 	pathNotification = "/xpnfront/xnotification.srf"
@@ -499,7 +499,7 @@ func (s *Server) helloDelay() time.Duration {
 }
 
 // aliveReply builds AliveReply: hr s32 0, buddy version u32, buddies u16,
-// block version u32, blocks u16, then the entries (docs/xbox/social-protocol.md
+// block version u32, blocks u16, then the entries (internal research notes
 // 1.1). A list whose version the console already holds is not resent.
 func (s *Server) aliveReply(hdr [presenceHeader]byte, r *social.Roster, buddyVer, blockVer uint32) ([]byte, error) {
 	lists := s.Lists

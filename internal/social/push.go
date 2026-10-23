@@ -3,7 +3,7 @@
 package social
 
 // Pending-word bits of the console's per-user notification state, in the order
-// the client tests them (docs/xbox/social-protocol.md 2.3): the lowest set bit
+// the client tests them (internal research notes 2.3): the lowest set bit
 // picks the poll kind.
 const (
 	PendingList1   uint32 = 0x1  // poll kind 0: friend list change

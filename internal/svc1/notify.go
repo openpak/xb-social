@@ -11,7 +11,7 @@ import (
 	"github.com/openpak/xb-social/internal/social"
 )
 
-// Notification poll (docs/xbox/social-protocol.md 2): type 8, body xuid u64,
+// Notification poll (internal research notes 2): type 8, body xuid u64,
 // kind u16, u32 0, u16 0x14, u32 max size. Kinds: 0/1 friend list changes,
 // 2 presence, 3 invitations received, 4 invitation answers.
 const (

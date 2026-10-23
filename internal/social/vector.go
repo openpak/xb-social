@@ -9,7 +9,7 @@ import (
 )
 
 // Notifier keeps, per signed-in console user, the version-vector words the
-// console reads to decide whether to poll (docs/xbox/social-protocol.md 2.3).
+// console reads to decide whether to poll (internal research notes 2.3).
 // Word layout: ver<<8 | index<<2 | (words-1); the console applies a word only
 // when its version is higher than the stored one.
 //

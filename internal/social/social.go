@@ -11,7 +11,7 @@
 // and resolved the same way; a peer that cannot be admitted looks exactly like
 // an unknown one.
 //
-// Projection rules (docs/xbox/native-service-architecture.md): a person
+// Projection rules (internal research notes): a person
 // appears only with an active "xbox" link and a published gamertag, carrying
 // the link's real XUID. Accounts without one are never given a synthetic Xbox
 // identity: they are omitted and counted in Roster.Omitted.

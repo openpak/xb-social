@@ -16,7 +16,7 @@ import (
 
 // Control serves the gateway's control stream (xbfeature.ControlServiceID):
 // it relays state-version pushes to the gateway and applies the session facts
-// the gateway reports (docs/xbox/social-protocol.md 8). Register it in
+// the gateway reports (internal research notes 8). Register it in
 // Server.Others[xbfeature.ControlServiceID] and set Notifier.Emit to Control.Emit.
 type Control struct {
 	Presence *social.Presences

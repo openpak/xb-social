@@ -24,7 +24,7 @@ Rules:
 With `XB_FEATURE_ADDR` set, xb-social also serves the gateway's `xbfeature`
 stream (mTLS, `spiffe://openpak/xb-gateway` only) for service id 1; point the
 gateway at it with `XBGW_BACKENDS=1=<host>:<port>` (it replaces the xb-account
-svc5 presence stub). Wire layouts: workspace `docs/xbox/social-protocol.md`.
+svc5 presence stub). Wire layouts: internal research notes.
 
 - `xpresence.srf`: Alive/Alive2 (up to 4 messages per POST, each for the
   connection's own user) publish presence to core as an `xbox` Sessions lease

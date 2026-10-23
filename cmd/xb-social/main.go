@@ -191,7 +191,7 @@ func startFeature(ctx context.Context, addr string, backend core.Backend, accoun
 		srv.StubDelay = time.Duration(ms) * time.Millisecond
 	}
 	// Friend/invite operations, the notification poll and AliveReply lists are
-	// built in (docs/xbox/social-protocol.md). Changes reach the console through
+	// built in (internal research notes). Changes reach the console through
 	// the gateway control stream (SG 0x5309 push, section 8). Messaging
 	// (service 18) is not served.
 	stateDir := os.Getenv("XB_STATE_DIR")

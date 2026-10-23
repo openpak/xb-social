@@ -13,7 +13,7 @@ import (
 	"github.com/openpak/xb-social/internal/social"
 )
 
-// Operation message types on xpresence.srf (docs/xbox/social-protocol.md 3).
+// Operation message types on xpresence.srf (internal research notes 3).
 const (
 	opFriendRequest = 0x3ec
 	opRemove        = 0x3ed

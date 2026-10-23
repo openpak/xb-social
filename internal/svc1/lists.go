@@ -10,8 +10,7 @@ import (
 	"github.com/openpak/xb-social/internal/social"
 )
 
-// Entry limits and status values of AliveReply payloads (docs/xbox/
-// social-protocol.md 1.1). A zero XUID or an empty name makes the console's
+// Entry limits and status values of AliveReply payloads (internal research notes 1.1). A zero XUID or an empty name makes the console's
 // whole logon fail (0x80150007), so such entries are never written.
 const (
 	maxBuddies = 100
