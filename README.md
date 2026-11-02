@@ -31,9 +31,8 @@ the image, configuration and release are in [Deploy](docs/deploy.md).
 ## Docs
 
 - [Protocol](docs/protocol.md)
-- [Evidence](docs/evidence.md)
 - [Deploy](docs/deploy.md)
-- [Notes](docs/notes.md)
+- [Provenance](docs/provenance.md)
 
 ## Licence
 
