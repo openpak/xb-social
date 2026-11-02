@@ -37,8 +37,10 @@ svc5 presence stub). Wire layouts: internal research notes.
   (`XB_STATE_DIR/events.cursor`, first start = stream head), deduplicated by
   event id; ban, deletion and Xbox unlink end presence. `social.PushSource`
   maps notices to the pending-word bits (0x1 list, 0x8 invites, 0x10 answers,
-  0x4 presence) for the gateway's UDP 0x5309 push; no channel to the gateway
-  exists yet.
+  0x4 presence). `svc1.Control` serves the gateway's control stream
+  (`xbfeature.ControlServiceID`) and relays those words as `ControlPush`
+  frames; the gateway's `deliverPush` turns them into the UDP 0x5309 push.
+  Wired in code with unit tests; no live console has exercised it yet.
 - Unsupported (honest 501): other message types, messaging (18), teams (19).
 
 ## Berth presence
