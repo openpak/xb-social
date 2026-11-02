@@ -48,3 +48,11 @@ continues to use the Xbox network and friends graph; the separate client label
 makes other platforms show “Berth”. The label survives lease renewal and recovery,
 and a newer physical Xbox connection clears it. Unknown labels fall back to Xbox.
 Device attribution is configured in xb-gateway; see its `deploy/berth-presence.md`.
+
+## Scope
+
+- The canonical friend graph, blocks and live sessions stay in the account core (Social,
+  Sessions and Links over gRPC). Nothing is copied or cached in this service.
+- Invitation answers live in this process only; the core has no answer path.
+- Not implemented: avatars, rich presence strings, nicknames, multi-user Alive (needs several
+  bound XUIDs per stream), and list-full checks for the other side.
