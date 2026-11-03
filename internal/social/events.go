@@ -6,10 +6,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -147,40 +143,6 @@ func (c *MemCursor) Save(v uint64) error {
 	c.v, c.set = v, true
 	c.mu.Unlock()
 	return nil
-}
-
-// FileCursor stores the version in a file, replaced atomically.
-type FileCursor struct{ Path string }
-
-func (c FileCursor) Load() (uint64, error) {
-	b, err := os.ReadFile(c.Path)
-	if errors.Is(err, os.ErrNotExist) {
-		return 0, ErrNoCursor
-	}
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseUint(strings.TrimSpace(string(b)), 10, 64)
-}
-
-func (c FileCursor) Save(v uint64) error {
-	tmp, err := os.CreateTemp(filepath.Dir(c.Path), ".cursor-*")
-	if err != nil {
-		return err
-	}
-	defer os.Remove(tmp.Name())
-	if _, err := tmp.WriteString(strconv.FormatUint(v, 10) + "\n"); err != nil {
-		tmp.Close()
-		return err
-	}
-	if err := tmp.Sync(); err != nil {
-		tmp.Close()
-		return err
-	}
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-	return os.Rename(tmp.Name(), c.Path)
 }
 
 // Poller reads core's durable event stream from a persisted cursor, handles

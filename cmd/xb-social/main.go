@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"net"
-	"path/filepath"
 	"strconv"
 
 	"github.com/openpak/xb-common/xbaccountapi"
@@ -194,12 +193,12 @@ func startFeature(ctx context.Context, addr string, backend core.Backend, accoun
 	// built in (internal research notes). Changes reach the console through
 	// the gateway control stream (SG 0x5309 push, section 8). Messaging
 	// (service 18) is not served.
-	stateDir := os.Getenv("XB_STATE_DIR")
-	if stateDir == "" {
-		stateDir = "/var/lib/xb-social"
+	state, err := social.OpenPG(required("XB_SOCIAL_DATABASE_URL"))
+	if err != nil {
+		return nil, fmt.Errorf("cannot open store: %w", err)
 	}
-	poller := &social.Poller{Core: backend, Cursor: social.FileCursor{Path: filepath.Join(stateDir, "events.cursor")},
-		Hub: hub, Presence: presence}
+	soc.Answers = state
+	poller := &social.Poller{Core: backend, Cursor: state, Hub: hub, Presence: presence}
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, fmt.Errorf("feature listener: %w", err)

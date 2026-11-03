@@ -24,7 +24,7 @@ NoNewPrivileges=true
 User=10001:10001
 EnvironmentFile=%h/openpak/deploy/xbox/xb-social.env
 Volume=%h/openpak/deploy/xbox/pki/social:/run/xb:ro
-# Event cursor (events.cursor). Losing it is safe: xb-social restarts at the stream head.
+# Legacy event cursor file (events.cursor); no longer read, the cursor is in Postgres (XB_SOCIAL_DATABASE_URL).
 Volume=openpak-xb-social:/var/lib/xb-social:U
 
 [Service]

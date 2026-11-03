@@ -492,7 +492,7 @@ func TestInviteDecline(t *testing.T) {
 func TestPollerCursorDedupeAndRevocation(t *testing.T) {
 	e := newEnv(t)
 	ctx := context.Background()
-	cur := FileCursor{Path: t.TempDir() + "/cursor"}
+	cur := &MemCursor{}
 	hub := &Hub{}
 	bobSub := hub.Subscribe("bob")
 	aliceSub := hub.Subscribe("alice")

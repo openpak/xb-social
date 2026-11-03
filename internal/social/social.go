@@ -116,6 +116,8 @@ type Service struct {
 	Presence *Presences
 	// Hub, when set, hears about invitation answers.
 	Hub *Hub
+	// Answers, when set, keeps invitation answers (nil: in memory).
+	Answers AnswerStore
 	// Concurrency bounds parallel link lookups (default 8).
 	Concurrency int
 	Now         func() time.Time

@@ -34,7 +34,7 @@ svc5 presence stub). Wire layouts: internal research notes.
   lease until it. A title change registers the new session then expires the old.
   The newest gateway connection generation owns the account (older: 409).
 - Events: `social.Poller` follows core's event stream from a durable cursor
-  (`XB_STATE_DIR/events.cursor`, first start = stream head), deduplicated by
+  (Postgres `xb_social.cursors`, first start = stream head), deduplicated by
   event id; ban, deletion and Xbox unlink end presence. `social.PushSource`
   maps notices to the pending-word bits (0x1 list, 0x8 invites, 0x10 answers,
   0x4 presence). `svc1.Control` serves the gateway's control stream

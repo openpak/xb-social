@@ -112,7 +112,7 @@ func newWorld(t *testing.T) *world {
 	soc := &social.Service{Core: c, Resolver: resolver{c}, Presence: pres, Now: c.Now}
 	hub := &social.Hub{}
 	w := &world{t: t, core: c, soc: soc, pres: pres, hub: hub,
-		poller: &social.Poller{Core: c, Cursor: social.FileCursor{Path: t.TempDir() + "/cursor"}, Hub: hub, Presence: pres}}
+		poller: &social.Poller{Core: c, Cursor: &social.MemCursor{}, Hub: hub, Presence: pres}}
 
 	p := newPKI()
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
