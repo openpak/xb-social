@@ -13,3 +13,9 @@ Config: `XB_FEATURE_ADDR`, `XB_SOCIAL_DATABASE_URL` (required), `XB_PRESENCE_TTL
 - Image: `podman build --secret id=netrc,src=$HOME/.netrc -t ghcr.io/openpak/xb-social:dev .`
 - Release: push a `vX.Y.Z` tag; `.github/workflows/release.yml` (tags and manual dispatch only) tests and publishes the multi-arch image. CI reads xb-common with the job's `GITHUB_TOKEN` through a netrc build secret; nothing secret is in git or in the image.
 - `deploy/` holds the env example and a Podman quadlet example (digests in it are examples; production pins its own).
+
+## Account erasure
+
+`DELETE /internal/accounts/{account_id}/data` with `Authorization: Bearer $ACCOUNT_ERASE_KEY`, served by a separate listener on `ERASE_ADDR` (default `:9099`; never publish it to the host). Without `ACCOUNT_ERASE_KEY` nothing is served. Reply: `{"service":"xb-social","rows":N}`. Website step name: `xb-social`.
+
+Erased: `invite_answers` queued for the account, `invite_answers` the account gave (by its Xbox id, read from the core link), the in-memory presence lease and the core session. Kept: nothing per account; the `cursors` row is the event position. The `account_deleted` event runs the same erase with the account-keyed rows only. One log line per erasure: `account erased account=<uuid> rows=<n> service=xb-social`.

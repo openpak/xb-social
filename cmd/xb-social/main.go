@@ -22,6 +22,7 @@ import (
 	"github.com/openpak/xb-common/xbaccountapi"
 	"github.com/openpak/xb-common/xbfeature"
 	"github.com/openpak/xb-social/internal/core"
+	"github.com/openpak/xb-social/internal/erase"
 	"github.com/openpak/xb-social/internal/friends"
 	"github.com/openpak/xb-social/internal/social"
 	"github.com/openpak/xb-social/internal/svc1"
@@ -198,7 +199,13 @@ func startFeature(ctx context.Context, addr string, backend core.Backend, accoun
 		return nil, fmt.Errorf("cannot open store: %w", err)
 	}
 	soc.Answers = state
-	poller := &social.Poller{Core: backend, Cursor: state, Hub: hub, Presence: presence}
+	eraser := &social.Eraser{PG: state, Core: backend, Presence: presence}
+	erase.Serve(ctx, "xb-social", eraser.Erase)
+	poller := &social.Poller{Core: backend, Cursor: state, Hub: hub, Presence: presence,
+		Erase: func(ctx context.Context, account string) error {
+			_, err := erase.Run(ctx, "xb-social", account, eraser.EraseOwn)
+			return err
+		}}
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, fmt.Errorf("feature listener: %w", err)

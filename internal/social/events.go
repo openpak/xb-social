@@ -157,6 +157,9 @@ type Poller struct {
 	Cursor   CursorStore
 	Hub      *Hub
 	Presence *Presences // nil: revocations only notify
+	// Erase, when set, runs on account_deleted with the account's own rows only
+	// (the core link is already gone). Failure retries the event.
+	Erase    func(ctx context.Context, account string) error
 	PageSize int
 	Interval time.Duration
 
@@ -269,6 +272,11 @@ func (p *Poller) apply(ctx context.Context, e core.Event) error {
 	}
 	if kind == NoticeRevoked && p.Presence != nil {
 		if err := p.Presence.Revoke(ctx, e.Account); err != nil {
+			return err
+		}
+	}
+	if e.Type == "account_deleted" && p.Erase != nil {
+		if err := p.Erase(ctx, e.Account); err != nil {
 			return err
 		}
 	}
