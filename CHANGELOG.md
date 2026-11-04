@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.1 - 2026-11-04
+
+- One-shot import of a legacy `events.cursor` (when `XB_STATE_DIR` is still set) into Postgres at start, only if the database has no cursor yet. The file is kept. Test covers import-once and restart (card openpak/prds#85).
+
 ## v0.2.0 - 2026-11-04
 
 - Account erasure (card #120). `DELETE /internal/accounts/{account_id}/data` (bearer `ACCOUNT_ERASE_KEY`, listener `ERASE_ADDR`, default `:9099`, container network only, not served while the key is unset) deletes the account's queued invitation answers and every answer the account gave that still waits in another inviter's queue (matched by its Xbox id from the core link), and ends its live presence session. The `account_deleted` core event runs the same erase with the account-keyed rows only (the link is gone by then).

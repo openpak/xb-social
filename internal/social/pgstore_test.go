@@ -5,6 +5,8 @@ package social
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/openpak/xb-social/internal/pgdb"
@@ -49,5 +51,31 @@ func TestPGStateSurvivesRestart(t *testing.T) {
 	}
 	if b, _ := p2.TakeAnswers(ctx, "bob"); len(b) != 1 || b[0].XUID != "y" {
 		t.Fatalf("bob: %+v", b)
+	}
+}
+
+func TestImportCursorFileOnce(t *testing.T) {
+	dsn := pgdb.TestDSN(t)
+	f := filepath.Join(t.TempDir(), "events.cursor")
+	os.WriteFile(f, []byte("77\n"), 0o600)
+	p1, err := OpenPG(dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok, err := p1.ImportCursorFile(f); err != nil || !ok {
+		t.Fatalf("import: %v %v", ok, err)
+	}
+	p1.Close()
+	os.WriteFile(f, []byte("99"), 0o600)
+	p2, _ := OpenPG(dsn)
+	defer p2.Close()
+	if ok, _ := p2.ImportCursorFile(f); ok {
+		t.Fatal("second import must be a no-op")
+	}
+	if v, err := p2.Load(); err != nil || v != 77 {
+		t.Fatalf("restart: %v %v", v, err)
+	}
+	if _, err := os.Stat(f); err != nil {
+		t.Fatal("file must stay")
 	}
 }

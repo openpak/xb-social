@@ -6,6 +6,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/openpak/xb-social/internal/pgdb"
@@ -52,6 +55,31 @@ func (p *PG) Load() (uint64, error) {
 		return 0, err
 	}
 	return uint64(v), nil
+}
+
+// ImportCursorFile copies the legacy events.cursor file into the database once:
+// only when the database has no cursor yet. The file is never changed or removed.
+// It reports whether a value was imported.
+func (p *PG) ImportCursorFile(path string) (bool, error) {
+	if _, err := p.Load(); err == nil {
+		return false, nil
+	} else if !errors.Is(err, ErrNoCursor) {
+		return false, err
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return false, nil // no legacy file: nothing to import
+	}
+	v, err := strconv.ParseUint(strings.TrimSpace(string(raw)), 10, 64)
+	if err != nil {
+		return false, nil
+	}
+	res, err := p.db.Exec(`INSERT INTO cursors(name,version) VALUES(?,?) ON CONFLICT(name) DO NOTHING`, cursorName, int64(v))
+	if err != nil {
+		return false, err
+	}
+	n, _ := res.RowsAffected()
+	return n > 0, nil
 }
 
 // Save records the last fully handled event version.

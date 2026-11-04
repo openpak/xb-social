@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -199,6 +200,13 @@ func startFeature(ctx context.Context, addr string, backend core.Backend, accoun
 		return nil, fmt.Errorf("cannot open store: %w", err)
 	}
 	soc.Answers = state
+	if dir := os.Getenv("XB_STATE_DIR"); dir != "" {
+		if ok, err := state.ImportCursorFile(filepath.Join(dir, "events.cursor")); err != nil {
+			return nil, fmt.Errorf("import events.cursor: %w", err)
+		} else if ok {
+			log.Printf("imported events.cursor into postgres (file kept)")
+		}
+	}
 	eraser := &social.Eraser{PG: state, Core: backend, Presence: presence}
 	erase.Serve(ctx, "xb-social", eraser.Erase)
 	poller := &social.Poller{Core: backend, Cursor: state, Hub: hub, Presence: presence,
